@@ -1,0 +1,6 @@
+service AdminService{
+    rpc AllAccountInfo (AllAccountInfoRequest) returns (AllAccountInfoReply);
+    rpc DeleteAccount (DeleteAccountRequest) returns (DeleteAccountReply);
+    rpc UpdateAccount (UpdateAccountRequest) returns (UpdateAccountReply);
+    rpc VideoRemoval (VideoRemovalRequest) returns (VideoRemovalReply); 
+}

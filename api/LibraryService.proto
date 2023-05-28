@@ -1,0 +1,7 @@
+service LibraryService{
+    rpc UsersPlaylistList (UsersPlaylistListRequest) returns (UsersPlaylistListReply);
+    rpc PlaylistCreation (PlaylistCreationRequest) returns (PlaylistCreationReply);
+    rpc PlaylistData (PlaylistDataRequest) returns (PlaylistDataReply);
+    rpc AddVideoToPlaylist (AddVideoToPlaylistRequest) returns (AddVideoToPlaylistReply);
+    rpc AddLikeOnVideo (AddLikeOnVideoRequest) returns (AddLikeOnVideoReply);
+}

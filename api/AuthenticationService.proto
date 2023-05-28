@@ -1,0 +1,3 @@
+service AuthenticationService{
+    rpc AuthenticateUser (AuthenticateUserRequest) returns (AuthenticateUserReply);
+}
