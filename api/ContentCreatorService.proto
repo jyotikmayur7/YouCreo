@@ -1,5 +1,0 @@
-service ContentCreatorService{
-    rpc UploadedVideoList (UploadedVideoListRequest) returns (UploadedVideoListReply);
-    rpc UploadVideo (UploadVideoRequest) returns (UploadVideoReply);
-    rpc DeleteVideo (DeleteVideoRequest) returns (DeleteVideoReply);
-}

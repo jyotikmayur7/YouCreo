@@ -1,5 +1,0 @@
-service SubscriptionService{
-    rpc UsersSubscriptionList (UsersSubscriptionListRequest) returns (UsersSubscriptionListReply);
-    rpc SubscribeToChannel (SubscribeToChannelRequest) returns (SubscribeToChannelReply);
-    rpc UnsubscribeToChannel (UnsubscribeToChannelRequest) returns (UnsubscribeToChannelReply);
-}

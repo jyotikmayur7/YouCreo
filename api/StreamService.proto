@@ -1,3 +1,0 @@
-service Streaming{
-    rpc VideoInfomation (VideoInfoRequest) returns (VideoInfomationReply);
-}

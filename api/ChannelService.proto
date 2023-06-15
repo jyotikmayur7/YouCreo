@@ -1,5 +1,0 @@
-service Channel{
-    rpc HomeScreenData (HomeScreenDataRequest) returns (HomeScreenDataReply);
-    rpc AllVideos (AllVideosRequest) returns (AllVideosReply);
-    rpc AboutInfo (AboutInfoRequest) returns (AboutInfoResponse);
-}
