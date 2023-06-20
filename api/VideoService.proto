@@ -3,6 +3,7 @@ package api;
 
 import "google/api/annotations.proto";
 import "protoc-gen-swagger/options/annotations.proto";
+import "api/common.proto";
 
 option go_package = "github.com/jyotikmayur7/YouCreo/VideoService";
 option (grpc.gateway.protoc_gen_swagger.options.openapiv2_swagger) = {
@@ -16,13 +17,13 @@ option (grpc.gateway.protoc_gen_swagger.options.openapiv2_swagger) = {
    };
    
 service VideoService{
-    rpc AddVideo (AddVideoRequest) returns (AddVideoResponse){
+    rpc CreateVideo (stream CreateVideoRequest) returns (CreateVideoResponse){
         option (google.api.http) = {
             post : "/v1/video"
             body : "*"
         };
         option (grpc.gateway.protoc_gen_swagger.options.openapiv2_operation) = {
-            summary: "Add Video",
+            summary: "Add/Create Video",
             description: "Upload video content on the channel as content creator",
             tags: "Videos";
           };
@@ -39,7 +40,7 @@ service VideoService{
           };
     };
 
-    rpc SteamVideo (StreamVideoRequest) returns (StreamVideoResponse){
+    rpc SteamVideo (StreamVideoRequest) returns (stream StreamVideoResponse){
         option (google.api.http) = {
             get : "/v1/video/{video_id}"
         };
@@ -50,51 +51,39 @@ service VideoService{
           };
     }
 
-    rpc ChangeResolution (ChangeResolutionRequest) returns (ChangeResolutionResponse){
+    rpc UpdateVideo (stream UpdateVideoRequest) returns (UpdateVideoResponse){
         option (google.api.http) = {
             put : "/v1/video/{video_id}"
             body: "*"
         };
         option (grpc.gateway.protoc_gen_swagger.options.openapiv2_operation) = {
-            summary: "Change Resolution",
-            description: "Change resolution of the current streaming video",
+            summary: "Update video information",
+            description: "Change resolution of the current streaming video or update the video specific information on auth user (content creator) level or Takedown the video on Admin level",
             tags: "Videos";
           };
     }
 
-    rpc TakedownVideo (TakedownVideoRequest) returns (TakedownVideoResponse){
-        option (google.api.http) = {
-            delete : "/v1/video/{video_id}"
-        };
-        option (grpc.gateway.protoc_gen_swagger.options.openapiv2_operation) = {
-            summary: "Takedown Video",
-            description: "Removing video content as Admin",
-            tags: "Videos";
-          };
-    }
-
-    rpc GetAllUploadedVideos (GetAllUploadedVideosRequest) returns (GetAllUploadedVideosResponse){
+    rpc GetAllVideos (GetAllVideosRequest) returns (stream GetAllVideosResponse){
         option (google.api.http) = {
             get : "/v1/video"
         };
         option (grpc.gateway.protoc_gen_swagger.options.openapiv2_operation) = {
             summary: "Get all uploaded videos",
-            description: "Get all uploaded videos on the content creator dashboard",
+            description: "Get all uploaded videos on the content creator dashboard, or channel home",
             tags: "Videos";
           };
     } 
 }
 
 
-message AddVideoRequest{
-    string videoTitle = 1;
-    string videoDescription = 2;
-    string publishedTime = 3;
-    string publishedDate = 4;
-    bytes videoContent = 5;
+message CreateVideoRequest{
+    string video_title = 1;
+    string video_description = 2;
+    bytes video_thumbnail = 3;
+    bytes video_content = 4;
 }
 
-message AddVideoResponse{}
+message CreateVideoResponse{}
 
 message DeleteVideoRequest{
     string video_id = 1;
@@ -108,44 +97,26 @@ message StreamVideoRequest{
 }
 
 message StreamVideoResponse{
-    bytes videoStream = 1;
-    string videoTitle = 2;
-    string videoDescription = 3;
-    string publishedTime = 4;
-    string publishedDate = 5;
-    string likesCount = 6;
-    string viewCount = 7;
-    string resolution = 8;
+    bytes video_stream = 1;
+    string resolution = 2;
+    api.Video video = 3;
 }
 
-message ChangeResolutionRequest{
+message UpdateVideoRequest{
     string video_id = 1;
-    string newResolution = 2;
+    string resolution = 2;
+    bytes video_thumbnail = 3;
+    api.Video video = 4;
 }
 
-message ChangeResolutionResponse{}
+message UpdateVideoResponse{}
 
-message TakedownVideoRequest{
-    string video_id = 1;
+message GetAllVideosRequest{
+    string cursor = 1;
+    string page_size = 2;
 }
 
-message TakedownVideoResponse{}
-
-message Video {
-    string videoTitle = 1;
-    string videoDescription = 2;
-    string publishedTime = 3;
-    string publishedDate = 4;
-    string likesCount = 5;
-    string viewCount = 6;
-}
-
-message GetAllUploadedVideosRequest{
-    string page_size = 1;
-    string page_token = 2;
-}
-
-message GetAllUploadedVideosResponse{
+message GetAllVideosResponse{
     repeated Video video = 1;
-    string next_page_token = 2;
+    string next_cursor = 2;
 }
