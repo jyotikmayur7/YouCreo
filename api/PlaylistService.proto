@@ -3,11 +3,12 @@ package api;
 
 import "google/api/annotations.proto";
 import "protoc-gen-swagger/options/annotations.proto";
+import "api/common.proto";
 
 option go_package = "github.com/jyotikmayur7/YouCreo/LibraryService";
 option (grpc.gateway.protoc_gen_swagger.options.openapiv2_swagger) = {
     info: {
-      title: "Library Service API";
+      title: "Playlist Service API";
       version: "0.1";
     };
     schemes: [HTTPS, HTTP];
@@ -16,7 +17,7 @@ option (grpc.gateway.protoc_gen_swagger.options.openapiv2_swagger) = {
    };
 
 
-service LibraryService{
+service PlaylistService{
     rpc CreatePlaylist (CreatePlaylistRequest) returns (CreatePlaylistResponse){
         option (google.api.http) = {
             post : "/v1/playlist"
@@ -29,7 +30,7 @@ service LibraryService{
           };
     }
 
-    rpc GetAllPlaylist (GetAllPlaylistRequest) returns (GetAllPlaylistResponse){
+    rpc GetAllPlaylists (GetAllPlaylistsRequest) returns (GetAllPlaylistsResponse){
         option (google.api.http) = {
             get : "/v1/playlist"
         };
@@ -58,76 +59,81 @@ service LibraryService{
         };
         option (grpc.gateway.protoc_gen_swagger.options.openapiv2_operation) = {
             summary: "Add Video To Playlist",
-            description: "Adding current watching video to playlist",
+            description: "Adding current watching video to playlist and If user likes the video then increasing video's like counter on video and adding video to LikedVideo Playlist",
             tags: "Playlist";
           };
     }
 
-    rpc AddLikeOnVideo (AddLikeOnVideoRequest) returns (AddLikeOnVideoResponse){
+    rpc UpdatePlaylist (UpdatePlaylistRequest) returns (UpdatePlaylistResponse){
         option (google.api.http) = {
-            post : "/v1/playlist/likedVideo/{playlist_id}"
+            put : "/v1/playlist/{playlist_id}"
             body : "*"
         };
         option (grpc.gateway.protoc_gen_swagger.options.openapiv2_operation) = {
-            summary: "Add Like on Video and Add Video to LikedPlaylist",
-            description: "Increasing video's like counter on video and adding video to LikedVideo Playlist",
+            summary: "Update Playlist",
+            description: "Update name of the playlist or to remove any video from playlist",
+            tags: "Playlist";
+          };
+    }
+
+    rpc DeletePlaylist (DeletePlaylistRequest) returns (DeletePlaylistResponse){
+        option (google.api.http) = {
+            delete : "/v1/playlist/{playlist_id}"
+            body : "*"
+        };
+        option (grpc.gateway.protoc_gen_swagger.options.openapiv2_operation) = {
+            summary: "Delete Playlist",
+            description: "Delete whole playlist",
             tags: "Playlist";
           };
     }
 }
 
 message CreatePlaylistRequest{
-    string playlistName = 1;
-    string createdAtDate = 2;
-    string createdAtTime = 3;
+    string playlist_name = 1;
 }
 
 message CreatePlaylistResponse{}
 
-message GetAllPlaylistRequest{
-    string page_size = 1;
-    string page_token = 2;
+message GetAllPlaylistsRequest{
+    string cursor = 1;
+    string page_size = 2;
 }
 
-message Playlist{
-    string playlist_id = 1;
-    string playlistName = 2;
-}
-
-message GetAllPlaylistResponse{
-    repeated Playlist playlist = 1;
-    string next_page_token = 2;
+message GetAllPlaylistsResponse{
+    repeated api.Playlist playlist = 1;
+    string next_cursor = 2;
 }
 
 message GetPlaylistRequest{
     string playlist_id = 1;
-    string page_size = 2;
-    string page_token = 3;
+    string cursor = 2;
+    string page_size = 3;
 }
 
-message PlaylistVideo{
-    string video_id = 1;
-    string videoTitle = 2;
-    string viewCount = 3;
-    string likesCount = 4;
-}
 
 message GetPlaylistResponse{
-    repeated PlaylistVideo video = 1;
-    string next_page_token = 2;
+    repeated api.Video video = 1;
+    string next_cursor = 2;
 }
 
 message AddVideoToPlaylistRequest{
     string playlist_id = 1;
-    PlaylistVideo video = 2;
+    string video_id = 2;
 }
 
 message AddVideoToPlaylistResponse{}
 
-message AddLikeOnVideoRequest{
+message UpdatePlaylistRequest{
     string playlist_id = 1;
-    string newLikesCount = 2;
-    string PlaylistVideo = 3;
+    string playlist_name = 2;
+    string video_id = 3;
 }
 
-message AddLikeOnVideoResponse{}
+message UpdatePlaylistResponse{}
+
+message DeletePlaylistRequest{
+    string playlist_id = 1;
+}
+
+message DeletePlaylistResponse{}
