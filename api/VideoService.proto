@@ -19,8 +19,8 @@ option (grpc.gateway.protoc_gen_swagger.options.openapiv2_swagger) = {
 service VideoService{
     rpc CreateVideo (stream CreateVideoRequest) returns (CreateVideoResponse){
         option (google.api.http) = {
-            post : "/v1/video"
-            body : "*"
+            post : "/v1/video",
+            body : "*",
         };
         option (grpc.gateway.protoc_gen_swagger.options.openapiv2_operation) = {
             summary: "Add/Create Video",
@@ -53,8 +53,8 @@ service VideoService{
 
     rpc UpdateVideo (stream UpdateVideoRequest) returns (UpdateVideoResponse){
         option (google.api.http) = {
-            put : "/v1/video/{video_id}"
-            body: "*"
+            put : "/v1/video/{video_id}",
+            body: "*",
         };
         option (grpc.gateway.protoc_gen_swagger.options.openapiv2_operation) = {
             summary: "Update video information",
@@ -66,6 +66,9 @@ service VideoService{
     rpc GetAllVideos (GetAllVideosRequest) returns (stream GetAllVideosResponse){
         option (google.api.http) = {
             get : "/v1/video"
+            additional_bindings {
+                get : "/v1/channel/video"
+            }
         };
         option (grpc.gateway.protoc_gen_swagger.options.openapiv2_operation) = {
             summary: "Get all uploaded videos",
