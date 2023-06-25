@@ -1,0 +1,40 @@
+syntax = "proto3";
+package api;
+
+import "google/api/annotations.proto";
+import "protoc-gen-swagger/options/annotations.proto";
+import "api/common.proto";
+
+option go_package = "github.com/jyotikmayur7/YouCreo/ChannelService";
+option (grpc.gateway.protoc_gen_swagger.options.openapiv2_swagger) = {
+    info: {
+      title: "Channel Service API";
+      version: "0.1";
+    };
+    schemes: [HTTPS, HTTP];
+    consumes: "application/json";
+    produces: ["application/json"];
+};
+
+service ChannelService{
+    rpc GetAllPopularVideos (GetAllPopularVideosRequest) returns (GetAllPopularVideosResponse){
+        option (google.api.http) = {
+            get : "/v1/channel"
+        };
+        option (grpc.gateway.protoc_gen_swagger.options.openapiv2_operation) = {
+            summary: "Get Popular Videos",
+            description: "Get all poplular videos of channel, it contains list of 15-20 most viewed videos",
+            tags: "Channel";
+        };
+    }
+}
+
+message GetAllPopularVideosRequest{
+    string cursor = 1;
+    string next_page = 2;
+}
+
+message GetAllPopularVideosResponse{
+    repeated api.Video video = 1;
+    string next_cursor = 2;
+}
