@@ -1,0 +1,126 @@
+syntax = "proto3";
+package api;
+
+import "google/api/annotations.proto";
+import "protoc-gen-swagger/options/annotations.proto";
+import "api/common.proto";
+
+option go_package = "github.com/jyotikmayur7/YouCreo/AccountService";
+option (grpc.gateway.protoc_gen_swagger.options.openapiv2_swagger) = {
+    info: {
+      title: "Account Service API";
+      version: "0.1";
+    };
+    schemes: [HTTPS, HTTP];
+    consumes: "application/json";
+    produces: ["application/json"];
+};
+
+service AccountService{
+    rpc GetAccount (GetAccountRequest) returns (GetAccountResponse){
+        option (google.api.http) = {
+            get : "/v1/account/{channel_id}"
+            additional_bindings {
+                get : "/v1/channel/{channel_id}"
+            }
+        };
+        option (grpc.gateway.protoc_gen_swagger.options.openapiv2_operation) = {
+            summary: "Get Account",
+            description: "Get account details",
+            tags: "Account";
+        };
+    }
+    
+    rpc GetAllAccounts (GetAllAccountsRequest) returns (GetAllAccountsResponse){
+        option (google.api.http) = {
+            get : "/v1/account"
+        };
+        option (grpc.gateway.protoc_gen_swagger.options.openapiv2_operation) = {
+            summary: "Get All Accounts",
+            description: "Get all accounts in admin portal",
+            tags: "Account";
+        };
+    }
+
+    rpc UpdateAccount (UpdateAccountRequest) returns (UpdateAccountResponse){
+        option (google.api.http) = {
+            put : "/v1/account",
+            body: "*",
+        };
+        option (grpc.gateway.protoc_gen_swagger.options.openapiv2_operation) = {
+            summary: "Update Account",
+            description: "Update the account details in admin portal",
+            tags: "Account";
+        };
+    }
+
+    rpc DeleteAccount (DeleteAccountRequest) returns (DeleteAccountResponse){
+        option (google.api.http) = {
+            delete : "/v1/account",
+            body: "*",
+        };
+        option (grpc.gateway.protoc_gen_swagger.options.openapiv2_operation) = {
+            summary: "Delete Account",
+            description: "Delete account in admin portal",
+            tags: "Account";
+        };
+    }
+
+    // Need to check on this one, it seems like middleware is required on this one.
+    rpc AuthUser (AuthUserRequest) returns (AuthUserResponse){}
+
+    rpc CreateAccount (CreateAccountRequest) returns (CreateAccountResponse){
+        option (google.api.http) = {
+            post : "/v1/account",
+            body: "*",
+        };
+        option (grpc.gateway.protoc_gen_swagger.options.openapiv2_operation) = {
+            summary: "Create Account",
+            description: "Get user details after OAuth to create account",
+            tags: "Account";
+        };
+    }
+}
+
+message GetAccountRequest{
+    string channel_id = 1;
+}
+
+message GetAccountResponse{
+    api.Channel channel = 1;
+}
+
+message GetAllAccountsRequest{
+    string cursor = 1;
+    string page_size = 2;
+}
+
+message GetAllAccountsResponse{
+    repeated api.Channel channel = 1;
+    string next_cursor = 2;
+}
+
+message UpdateAccountRequest{
+    string channel_id = 1;
+    api.Channel channel = 2;
+    string channel_info = 3;
+}
+
+message UpdateAccountResponse{}
+
+message DeleteAccountRequest{
+    string channel_id = 1;
+}
+
+message DeleteAccountResponse{}
+
+message CreateAccountRequest{
+    api.Channel channel = 1;
+    string channel_info = 2;
+}
+
+message CreateAccountResponse{}
+
+message AuthUserRequest{}
+
+message AuthUserResponse{}
