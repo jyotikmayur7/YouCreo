@@ -19,7 +19,7 @@ option (grpc.gateway.protoc_gen_swagger.options.openapiv2_swagger) = {
 service ChannelService{
     rpc GetAllPopularVideos (GetAllPopularVideosRequest) returns (GetAllPopularVideosResponse){
         option (google.api.http) = {
-            get : "/v1/channel"
+            get : "/v1/channel/home"
         };
         option (grpc.gateway.protoc_gen_swagger.options.openapiv2_operation) = {
             summary: "Get Popular Videos",
