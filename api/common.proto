@@ -18,3 +18,9 @@ message Playlist{
     string playlist_id = 1;
     string playlist_name = 2;
 }
+
+message Channel{
+    string channel_id = 1;
+    string channel_name = 2;
+    string channel_profile_photo = 3;
+}
