@@ -1,0 +1,26 @@
+syntax = "proto3";
+package api;
+
+
+message Video {
+    string video_id = 1;
+    string video_title = 2;
+    string video_description = 3;
+    string published_time = 4;
+    string published_date = 5;
+    string likes = 6;
+    string views = 7;
+    string channel_name = 8; 
+    bytes video_thumbnail = 9;
+}
+
+message Playlist{
+    string playlist_id = 1;
+    string playlist_name = 2;
+}
+
+message Channel{
+    string channel_id = 1;
+    string channel_name = 2;
+    string channel_profile_photo = 3;
+}
