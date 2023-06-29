@@ -1,0 +1,125 @@
+syntax = "proto3";
+package api;
+
+import "google/api/annotations.proto";
+import "protoc-gen-swagger/options/annotations.proto";
+import "api/common.proto";
+
+option go_package = "github.com/jyotikmayur7/YouCreo/VideoService";
+option (grpc.gateway.protoc_gen_swagger.options.openapiv2_swagger) = {
+    info: {
+      title: "Video Service API";
+      version: "0.1";
+    };
+    schemes: [HTTPS, HTTP];
+    consumes: "application/json";
+    produces: ["application/json"];
+   };
+   
+service VideoService{
+    rpc CreateVideo (stream CreateVideoRequest) returns (CreateVideoResponse){
+        option (google.api.http) = {
+            post : "/v1/video",
+            body : "*",
+        };
+        option (grpc.gateway.protoc_gen_swagger.options.openapiv2_operation) = {
+            summary: "Add/Create Video",
+            description: "Upload video content on the channel as content creator",
+            tags: "Videos";
+          };
+    };
+
+    rpc DeleteVideo (DeleteVideoRequest) returns (DeleteVideoResponse){
+        option (google.api.http) = {
+            delete : "/v1/video/{video_id}"
+        };
+        option (grpc.gateway.protoc_gen_swagger.options.openapiv2_operation) = {
+            summary: "Delete Video",
+            description: "Remove video content from the channel as content creator",
+            tags: "Videos";
+          };
+    };
+
+    rpc SteamVideo (StreamVideoRequest) returns (stream StreamVideoResponse){
+        option (google.api.http) = {
+            get : "/v1/video/{video_id}"
+        };
+        option (grpc.gateway.protoc_gen_swagger.options.openapiv2_operation) = {
+            summary: "Stream Video",
+            description: "Stream video from backend to frontend",
+            tags: "Videos";
+          };
+    }
+
+    rpc UpdateVideo (stream UpdateVideoRequest) returns (UpdateVideoResponse){
+        option (google.api.http) = {
+            put : "/v1/video/{video_id}",
+            body: "*",
+        };
+        option (grpc.gateway.protoc_gen_swagger.options.openapiv2_operation) = {
+            summary: "Update video information",
+            description: "Change resolution of the current streaming video or update the video specific information on auth user (content creator) level or Takedown the video on Admin level",
+            tags: "Videos";
+          };
+    }
+
+    rpc GetAllVideos (GetAllVideosRequest) returns (stream GetAllVideosResponse){
+        option (google.api.http) = {
+            get : "/v1/video"
+            additional_bindings {
+                get : "/v1/channel/video"
+            }
+        };
+        option (grpc.gateway.protoc_gen_swagger.options.openapiv2_operation) = {
+            summary: "Get all uploaded videos",
+            description: "Get all uploaded videos on the content creator dashboard, or channel home",
+            tags: "Videos";
+          };
+    } 
+}
+
+
+message CreateVideoRequest{
+    string video_title = 1;
+    string video_description = 2;
+    bytes video_thumbnail = 3;
+    bytes video_content = 4;
+}
+
+message CreateVideoResponse{}
+
+message DeleteVideoRequest{
+    string video_id = 1;
+}
+
+message DeleteVideoResponse{}
+
+message StreamVideoRequest{
+    string video_id = 1;
+    string resolution = 2;
+}
+
+message StreamVideoResponse{
+    bytes video_stream = 1;
+    string resolution = 2;
+    api.Video video = 3;
+}
+
+message UpdateVideoRequest{
+    string video_id = 1;
+    string resolution = 2;
+    bytes video_thumbnail = 3;
+    api.Video video = 4;
+}
+
+message UpdateVideoResponse{}
+
+message GetAllVideosRequest{
+    string cursor = 1;
+    string page_size = 2;
+}
+
+message GetAllVideosResponse{
+    repeated Video video = 1;
+    string next_cursor = 2;
+}
