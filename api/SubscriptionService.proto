@@ -5,7 +5,7 @@ import "google/api/annotations.proto";
 import "protoc-gen-swagger/options/annotations.proto";
 import "api/common.proto";
 
-option go_package = "github.com/jyotikmayur7/YouCreo/SubscriptionService";
+option go_package = "github.com/jyotikmayur7/YouCreo/api";
 option (grpc.gateway.protoc_gen_swagger.options.openapiv2_swagger) = {
     info: {
       title: "Subscription Service API";

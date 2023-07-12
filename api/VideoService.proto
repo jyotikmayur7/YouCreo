@@ -5,7 +5,7 @@ import "google/api/annotations.proto";
 import "protoc-gen-swagger/options/annotations.proto";
 import "api/common.proto";
 
-option go_package = "github.com/jyotikmayur7/YouCreo/VideoService";
+option go_package = "github.com/jyotikmayur7/YouCreo/api";
 option (grpc.gateway.protoc_gen_swagger.options.openapiv2_swagger) = {
     info: {
       title: "Video Service API";
@@ -53,7 +53,7 @@ service VideoService{
 
     rpc UpdateVideo (stream UpdateVideoRequest) returns (UpdateVideoResponse){
         option (google.api.http) = {
-            put : "/v1/video/{video_id}",
+            put : "/v1/video",
             body: "*",
         };
         option (grpc.gateway.protoc_gen_swagger.options.openapiv2_operation) = {
@@ -102,14 +102,14 @@ message StreamVideoRequest{
 message StreamVideoResponse{
     bytes video_stream = 1;
     string resolution = 2;
-    api.Video video = 3;
+    Video video = 3;
 }
 
 message UpdateVideoRequest{
     string video_id = 1;
     string resolution = 2;
     bytes video_thumbnail = 3;
-    api.Video video = 4;
+    Video video = 4;
 }
 
 message UpdateVideoResponse{}

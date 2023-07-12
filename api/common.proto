@@ -1,6 +1,7 @@
 syntax = "proto3";
 package api;
 
+option go_package = "github.com/jyotikmayur7/YouCreo/api";
 
 message Video {
     string video_id = 1;
