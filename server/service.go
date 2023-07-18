@@ -3,6 +3,7 @@ package server
 import (
 	"net"
 	"os"
+	"os/signal"
 
 	"github.com/hashicorp/go-hclog"
 	video_service "github.com/jyotikmayur7/YouCreo/VideoService"
@@ -26,16 +27,20 @@ func StartService() {
 		os.Exit(1)
 	}
 
-	grpcServer.Serve(l)
+	go func() {
+		err := grpcServer.Serve(l)
+		if err != nil {
+			log.Error(err.Error())
+		}
+	}()
 
-	// Go routine code required for this to work
-	// sigChan := make(chan os.Signal)
-	// signal.Notify(sigChan, os.Interrupt)
-	// signal.Notify(sigChan, os.Kill)
+	sigChan := make(chan os.Signal)
+	signal.Notify(sigChan, os.Interrupt)
+	signal.Notify(sigChan, os.Kill)
 
-	// sig := <-sigChan
-	// l.Println("Received terminate, graceful shutdown", sig)
+	sig := <-sigChan
+	log.Error("Received terminate, graceful shutdown", sig)
 
-	// tc, _ := context.WithTimeout(context.Background(), 30*time.Second)
-	// s.Shutdown(tc)
+	grpcServer.GracefulStop()
+	log.Info("Server gracefully stopped!")
 }
