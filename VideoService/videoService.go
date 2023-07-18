@@ -5,9 +5,11 @@ import (
 
 	"github.com/hashicorp/go-hclog"
 	"github.com/jyotikmayur7/YouCreo/api"
+	"github.com/jyotikmayur7/YouCreo/database"
 )
 
 type VideoService struct {
+	DB  *database.DatabaseAccessor
 	log hclog.Logger
 	api.UnimplementedVideoServiceServer
 }

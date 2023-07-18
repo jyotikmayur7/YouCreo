@@ -17,7 +17,8 @@ import (
 func StartService() {
 	log := hclog.Default()
 	grpcServer := grpc.NewServer()
-	dbConn := database.DatabseClient()
+	var databaseAccessor *database.DatabaseAccessor
+	databaseAccessor.Client = database.DatabaseClient(log)
 	videoService := video_service.NewVideoService(log)
 
 	api.RegisterVideoServiceServer(grpcServer, videoService)
@@ -44,11 +45,10 @@ func StartService() {
 	sig := <-sigChan
 	log.Error("Received terminate, graceful shutdown", sig)
 
-	dbConn.Disconnect(context.Background())
-	err = dbConn.Disconnect(context.Background())
+	grpcServer.GracefulStop()
+	err = databaseAccessor.Client.Disconnect(context.Background())
 	if err != nil {
 		log.Error(err.Error())
 	}
-	grpcServer.GracefulStop()
 	log.Info("Server gracefully stopped!")
 }
