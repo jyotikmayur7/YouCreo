@@ -14,8 +14,9 @@ type VideoService struct {
 	api.UnimplementedVideoServiceServer
 }
 
-func NewVideoService(l hclog.Logger) *VideoService {
+func NewVideoService(l hclog.Logger, db *database.DatabaseAccessor) *VideoService {
 	return &VideoService{
+		DB:                              db,
 		log:                             l,
 		UnimplementedVideoServiceServer: api.UnimplementedVideoServiceServer{},
 	}
