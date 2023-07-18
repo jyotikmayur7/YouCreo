@@ -187,7 +187,7 @@ func (x *videoServiceGetAllVideosClient) Recv() (*GetAllVideosResponse, error) {
 }
 
 // VideoServiceServer is the server API for VideoService service.
-// All implementations must embed UnimplementedVideoServiceServer
+// All implementations should embed UnimplementedVideoServiceServer
 // for forward compatibility
 type VideoServiceServer interface {
 	CreateVideo(VideoService_CreateVideoServer) error
@@ -195,10 +195,9 @@ type VideoServiceServer interface {
 	SteamVideo(*StreamVideoRequest, VideoService_SteamVideoServer) error
 	UpdateVideo(VideoService_UpdateVideoServer) error
 	GetAllVideos(*GetAllVideosRequest, VideoService_GetAllVideosServer) error
-	mustEmbedUnimplementedVideoServiceServer()
 }
 
-// UnimplementedVideoServiceServer must be embedded to have forward compatible implementations.
+// UnimplementedVideoServiceServer should be embedded to have forward compatible implementations.
 type UnimplementedVideoServiceServer struct {
 }
 
@@ -217,7 +216,6 @@ func (UnimplementedVideoServiceServer) UpdateVideo(VideoService_UpdateVideoServe
 func (UnimplementedVideoServiceServer) GetAllVideos(*GetAllVideosRequest, VideoService_GetAllVideosServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetAllVideos not implemented")
 }
-func (UnimplementedVideoServiceServer) mustEmbedUnimplementedVideoServiceServer() {}
 
 // UnsafeVideoServiceServer may be embedded to opt out of forward compatibility for this service.
 // Use of this interface is not recommended, as added methods to VideoServiceServer will

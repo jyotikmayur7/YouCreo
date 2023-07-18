@@ -11,14 +11,12 @@ import (
 type VideoService struct {
 	DB  *database.DatabaseAccessor
 	log hclog.Logger
-	api.UnimplementedVideoServiceServer
 }
 
 func NewVideoService(l hclog.Logger, db *database.DatabaseAccessor) *VideoService {
 	return &VideoService{
-		DB:                              db,
-		log:                             l,
-		UnimplementedVideoServiceServer: api.UnimplementedVideoServiceServer{},
+		DB:  db,
+		log: l,
 	}
 }
 func (vs *VideoService) CreateVideo(stream api.VideoService_CreateVideoServer) error {
@@ -26,7 +24,8 @@ func (vs *VideoService) CreateVideo(stream api.VideoService_CreateVideoServer) e
 }
 
 func (vs *VideoService) DeleteVideo(context.Context, *api.DeleteVideoRequest) (*api.DeleteVideoResponse, error) {
-	return nil, nil
+	vs.log.Info("Delete Method")
+	return &api.DeleteVideoResponse{}, nil
 }
 func (vs *VideoService) SteamVideo(req *api.StreamVideoRequest, stream api.VideoService_SteamVideoServer) error {
 	return nil

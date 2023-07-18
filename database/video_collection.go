@@ -10,8 +10,12 @@ type VideoAccessor struct {
 }
 
 type VideoCollection interface {
-	CreateVideo(models.Video) (interface{}, error)
+	CreateVideo(models.Video) error
 	GetAllVideos() ([]models.Video, error)
 	DeleteVideoById(ID int) error
 	UpdateVideo(models.Video) error
+}
+
+func (v *VideoAccessor) CreateVideo(video models.Video) error {
+	return nil
 }

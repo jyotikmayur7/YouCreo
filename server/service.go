@@ -15,15 +15,19 @@ import (
 )
 
 func StartService() {
+	ctx := context.Background()
 	log := hclog.Default()
 	grpcServer := grpc.NewServer()
-	var databaseAccessor *database.DatabaseAccessor
-	databaseAccessor.Client = database.DatabaseClient(log)
+	databaseAccessor := database.NewDatabaseAccessor(database.DatabaseClient(log, ctx))
 	videoService := video_service.NewVideoService(log, databaseAccessor)
 
 	api.RegisterVideoServiceServer(grpcServer, videoService)
 
 	reflection.Register(grpcServer)
+
+	// http server is required
+	// 443 -> http, 8000 -> grpc
+	// Healthend point is required
 
 	l, err := net.Listen("tcp", ":9092")
 	if err != nil {

@@ -102,14 +102,14 @@ message StreamVideoRequest{
 message StreamVideoResponse{
     bytes video_stream = 1;
     string resolution = 2;
-    Video video = 3;
+    api.Video video = 3;
 }
 
 message UpdateVideoRequest{
     string video_id = 1;
     string resolution = 2;
     bytes video_thumbnail = 3;
-    Video video = 4;
+    api.Video video = 4;
 }
 
 message UpdateVideoResponse{}
@@ -120,6 +120,6 @@ message GetAllVideosRequest{
 }
 
 message GetAllVideosResponse{
-    repeated Video video = 1;
+    repeated api.Video video = 1;
     string next_cursor = 2;
 }
