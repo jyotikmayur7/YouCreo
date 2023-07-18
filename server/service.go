@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"net"
 	"os"
 	"os/signal"
@@ -8,6 +9,7 @@ import (
 	"github.com/hashicorp/go-hclog"
 	video_service "github.com/jyotikmayur7/YouCreo/VideoService"
 	"github.com/jyotikmayur7/YouCreo/api"
+	"github.com/jyotikmayur7/YouCreo/database"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
@@ -15,6 +17,7 @@ import (
 func StartService() {
 	log := hclog.Default()
 	grpcServer := grpc.NewServer()
+	dbConn := database.DatabseClient()
 	videoService := video_service.NewVideoService(log)
 
 	api.RegisterVideoServiceServer(grpcServer, videoService)
@@ -41,6 +44,11 @@ func StartService() {
 	sig := <-sigChan
 	log.Error("Received terminate, graceful shutdown", sig)
 
+	dbConn.Disconnect(context.Background())
+	err = dbConn.Disconnect(context.Background())
+	if err != nil {
+		log.Error(err.Error())
+	}
 	grpcServer.GracefulStop()
 	log.Info("Server gracefully stopped!")
 }
