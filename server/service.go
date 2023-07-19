@@ -50,7 +50,7 @@ func StartService() {
 	log.Error("Received terminate, graceful shutdown", sig)
 
 	grpcServer.GracefulStop()
-	err = databaseAccessor.Client.Disconnect(context.Background())
+	err = databaseAccessor.Client.Disconnect(ctx)
 	if err != nil {
 		log.Error(err.Error())
 	}
