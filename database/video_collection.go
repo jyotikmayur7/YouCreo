@@ -9,6 +9,10 @@ type VideoAccessor struct {
 	Collection *mongo.Collection
 }
 
+func NewVideoAccessor(col *mongo.Collection) *VideoAccessor {
+	return &VideoAccessor{Collection: col}
+}
+
 type VideoCollection interface {
 	CreateVideo(models.Video) error
 	GetAllVideos() ([]models.Video, error)
