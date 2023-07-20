@@ -3,14 +3,17 @@ package server
 import (
 	"context"
 	"net"
+	"net/http"
 	"os"
 	"os/signal"
 
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/hashicorp/go-hclog"
 	video_service "github.com/jyotikmayur7/YouCreo/VideoService"
 	"github.com/jyotikmayur7/YouCreo/api"
 	"github.com/jyotikmayur7/YouCreo/database"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/reflection"
 )
 
@@ -26,18 +29,47 @@ func StartService() {
 
 	reflection.Register(grpcServer)
 
-	// http server is required
-	// 443 -> http, 8000 -> grpc
 	// Healthend point is required
 
-	l, err := net.Listen("tcp", ":9092")
+	l, err := net.Listen("tcp", ":8000")
 	if err != nil {
 		log.Error("Unable to listen", "error", err)
 		os.Exit(1)
 	}
 
+	log.Info("Serving gRPC on 127.0.0.1:8000")
 	go func() {
 		err := grpcServer.Serve(l)
+		if err != nil {
+			log.Error(err.Error())
+		}
+	}()
+
+	conn, err := grpc.DialContext(
+		context.Background(),
+		"127.0.0.1:8000",
+		grpc.WithBlock(),
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	)
+	if err != nil {
+		log.Error("Failed to dial server:", err)
+	}
+
+	gatewayMux := runtime.NewServeMux()
+
+	err = api.RegisterVideoServiceHandler(ctx, gatewayMux, conn)
+	if err != nil {
+		log.Error("Failed to register gateway:", err)
+	}
+
+	gatewayServer := &http.Server{
+		Addr:    ":443",
+		Handler: gatewayMux,
+	}
+
+	log.Info("Serving gRPC-Gateway on http://127.0.0.1:443")
+	go func() {
+		err := gatewayServer.ListenAndServe()
 		if err != nil {
 			log.Error(err.Error())
 		}
