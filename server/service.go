@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"time"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/hashicorp/go-hclog"
@@ -82,12 +83,14 @@ func StartService() {
 	sig := <-sigChan
 	log.Error("Received terminate, graceful shutdown", sig)
 
+	tc, _ := context.WithTimeout(context.Background(), 30*time.Second)
+	gatewayServer.Shutdown(tc)
 	grpcServer.GracefulStop()
 	err = databaseAccessor.Client.Disconnect(ctx)
 	if err != nil {
 		log.Error(err.Error())
 	}
-	log.Info("Server gracefully stopped!")
+	log.Info("Servers gracefully stopped!")
 }
 
 func initDatabaseAccessor(da *database.DatabaseAccessor) *database.DatabaseAccessor {
