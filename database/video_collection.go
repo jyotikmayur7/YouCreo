@@ -23,3 +23,15 @@ type VideoCollection interface {
 func (v *VideoAccessor) CreateVideo(video models.Video) error {
 	return nil
 }
+
+func (v *VideoAccessor) GetAllVideos() ([]models.Video, error) {
+	return nil, nil
+}
+
+func (v *VideoAccessor) DeleteVideoById(ID int) error {
+	return nil
+}
+
+func (v *VideoAccessor) UpdateVideo(video models.Video) error {
+	return nil
+}
