@@ -5,6 +5,7 @@ import (
 
 	"github.com/jyotikmayur7/YouCreo/models"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -60,6 +61,19 @@ func (v *VideoAccessor) GetAllVideos() ([]models.Video, error) {
 
 	return allVideos, err
 
+}
+
+func (v *VideoAccessor) GetVideoById(ID primitive.ObjectID) (models.Video, error) {
+	var video models.Video
+
+	filter := bson.D{primitive.E{Key: "_id", Value: ID}}
+
+	err := v.Collection.FindOne(v.ctx, filter).Decode(&video)
+	if err != nil {
+		return video, err
+	}
+
+	return video, err
 }
 
 func (v *VideoAccessor) DeleteVideoById(ID int) error {
