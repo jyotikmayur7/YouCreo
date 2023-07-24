@@ -1,15 +1,18 @@
 package database
 
 import (
+	"context"
+
 	"github.com/jyotikmayur7/YouCreo/models"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type VideoAccessor struct {
 	Collection *mongo.Collection
+	ctx        context.Context
 }
 
-func NewVideoAccessor(col *mongo.Collection) *VideoAccessor {
+func NewVideoAccessor(col *mongo.Collection, ctx context.Context) *VideoAccessor {
 	return &VideoAccessor{Collection: col}
 }
 
@@ -21,6 +24,13 @@ type VideoCollection interface {
 }
 
 func (v *VideoAccessor) CreateVideo(video models.Video) error {
+	insert := video.ToBson()
+
+	_, err := v.Collection.InsertOne(v.ctx, insert)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
