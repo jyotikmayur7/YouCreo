@@ -76,10 +76,18 @@ func (v *VideoAccessor) GetVideoById(ID primitive.ObjectID) (models.Video, error
 	return video, err
 }
 
-func (v *VideoAccessor) DeleteVideoById(ID int) error {
-	return nil
+func (v *VideoAccessor) DeleteVideoById(ID primitive.ObjectID) error {
+	filter := bson.D{primitive.E{Key: "_id", Value: ID}}
+	_, err := v.Collection.DeleteOne(v.ctx, filter)
+
+	return err
+
 }
 
 func (v *VideoAccessor) UpdateVideo(video models.Video) error {
-	return nil
+	filter := bson.D{primitive.E{Key: "_id", Value: video.ID}}
+	update := video.ToBson()
+	_, err := v.Collection.UpdateOne(v.ctx, filter, update)
+
+	return err
 }
