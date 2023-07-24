@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/jyotikmayur7/YouCreo/models"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -35,7 +36,30 @@ func (v *VideoAccessor) CreateVideo(video models.Video) error {
 }
 
 func (v *VideoAccessor) GetAllVideos() ([]models.Video, error) {
-	return nil, nil
+	var allVideos []models.Video
+
+	cursor, err := v.Collection.Find(v.ctx, bson.D{})
+	if err != nil {
+		return allVideos, err
+	}
+
+	for cursor.Next(v.ctx) {
+		var video models.Video
+		err := cursor.Decode(&video)
+		if err != nil {
+			return allVideos, err
+		}
+		allVideos = append(allVideos, video)
+	}
+
+	if err := cursor.Err(); err != nil {
+		return allVideos, nil
+	}
+
+	err = cursor.Close(v.ctx)
+
+	return allVideos, err
+
 }
 
 func (v *VideoAccessor) DeleteVideoById(ID int) error {
