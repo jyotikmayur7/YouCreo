@@ -21,16 +21,17 @@ func NewVideoService(l hclog.Logger, db *database.DatabaseAccessor) *VideoServic
 		log: l,
 	}
 }
+
 func (vs *VideoService) CreateVideo(stream api.VideoService_CreateVideoServer) error {
 
-	req, err := stream.Recv()
-	if err != nil {
-		vs.log.Error("Error: Unable to receive video info ", err)
-		return err
-	}
+	// req, err := stream.Recv()
+	// if err != nil {
+	// 	vs.log.Error("Error: Unable to receive video info ", err)
+	// 	return err
+	// }
 
-	videoTitle := req.GetVideoTitle()
-	videoDescription := req.GetVideoDescription()
+	// videoTitle := req.GetVideoTitle()
+	// videoDescription := req.GetVideoDescription()
 
 	videoData := bytes.Buffer{}
 	videoThumbnail := bytes.Buffer{}
@@ -54,7 +55,7 @@ func (vs *VideoService) CreateVideo(stream api.VideoService_CreateVideoServer) e
 		}
 
 		videoChunk := req.GetVideoContent()
-		// Instrading of storing data locally need to send this chunk to aws S3 to store it so that bytes.Buffer{} won't exceed the size limit
+		// Intead of storing data locally need to send this chunk to aws S3 to store it so that bytes.Buffer{} won't exceed the size limit
 		videoData.Write(videoChunk)
 	}
 

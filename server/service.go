@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-hclog"
 	video_service "github.com/jyotikmayur7/YouCreo/VideoService"
 	"github.com/jyotikmayur7/YouCreo/api"
+	"github.com/jyotikmayur7/YouCreo/config"
 	"github.com/jyotikmayur7/YouCreo/database"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -21,8 +22,12 @@ import (
 func StartService() {
 	ctx := context.Background()
 	log := hclog.Default()
+	config, err := config.LoadConfig(log)
+	if err != nil {
+		log.Error(err.Error())
+	}
 	grpcServer := grpc.NewServer()
-	databaseAccessor := database.NewDatabaseAccessor(database.DatabaseClient(log, ctx))
+	databaseAccessor := database.NewDatabaseAccessor(database.DatabaseClient(log, ctx, *config))
 	databaseAccessor = initDatabaseAccessor(databaseAccessor, ctx)
 	videoService := video_service.NewVideoService(log, databaseAccessor)
 
@@ -32,13 +37,13 @@ func StartService() {
 
 	// Healthend point is required
 
-	l, err := net.Listen("tcp", ":8000")
+	l, err := net.Listen("tcp", ":"+config.Server.Grpc.Port)
 	if err != nil {
 		log.Error("Unable to listen", "error", err)
 		os.Exit(1)
 	}
 
-	log.Info("Serving gRPC on 127.0.0.1:8000")
+	log.Info("Serving gRPC on ", config.Server.Host+":"+config.Server.Grpc.Port)
 	go func() {
 		err := grpcServer.Serve(l)
 		if err != nil {
@@ -48,7 +53,7 @@ func StartService() {
 
 	conn, err := grpc.DialContext(
 		context.Background(),
-		"127.0.0.1:8000",
+		config.Server.Host+":"+config.Server.Grpc.Port,
 		grpc.WithBlock(),
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
@@ -64,11 +69,11 @@ func StartService() {
 	}
 
 	gatewayServer := &http.Server{
-		Addr:    ":443",
+		Addr:    ":" + config.Server.Gateway.Port,
 		Handler: gatewayMux,
 	}
 
-	log.Info("Serving gRPC-Gateway on http://127.0.0.1:443")
+	log.Info("Serving gRPC-Gateway on ", config.Server.Host+":"+config.Server.Gateway.Port)
 	go func() {
 		err := gatewayServer.ListenAndServe()
 		if err != nil {

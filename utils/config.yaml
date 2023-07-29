@@ -1,0 +1,10 @@
+environment: "dev"
+server:
+  host: "127.0.0.1"
+  grpc:
+    port: "8000"
+  gateway:
+    port: "443"
+database:
+  name: "mongodb"
+  uri: "mongodb+srv://orangekun101:mongo-user-pass@youcreo.vkxi3yl.mongodb.net/?retryWrites=true&w=majority"
