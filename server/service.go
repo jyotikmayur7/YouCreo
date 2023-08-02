@@ -12,8 +12,8 @@ import (
 	"github.com/hashicorp/go-hclog"
 	video_service "github.com/jyotikmayur7/YouCreo/VideoService"
 	"github.com/jyotikmayur7/YouCreo/api"
-	"github.com/jyotikmayur7/YouCreo/config"
 	"github.com/jyotikmayur7/YouCreo/database"
+	"github.com/jyotikmayur7/YouCreo/utils"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/reflection"
@@ -22,7 +22,7 @@ import (
 func StartService() {
 	ctx := context.Background()
 	log := hclog.Default()
-	config, err := config.LoadConfig(log)
+	config, err := utils.LoadConfig(log)
 	if err != nil {
 		log.Error(err.Error())
 	}

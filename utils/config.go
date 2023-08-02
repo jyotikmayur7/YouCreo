@@ -1,4 +1,4 @@
-package config
+package utils
 
 import (
 	"github.com/hashicorp/go-hclog"
@@ -27,7 +27,7 @@ type Config struct {
 func LoadConfig(l hclog.Logger) (*Config, error) {
 	var config *Config
 
-	viper.AddConfigPath("utils/")
+	viper.AddConfigPath("config/")
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
 
