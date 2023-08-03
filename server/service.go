@@ -29,7 +29,7 @@ func StartService() {
 	grpcServer := grpc.NewServer()
 	databaseAccessor := database.NewDatabaseAccessor(database.DatabaseClient(log, ctx, *config))
 	databaseAccessor = initDatabaseAccessor(databaseAccessor, ctx)
-	videoService := video_service.NewVideoService(log, databaseAccessor)
+	videoService := video_service.NewVideoService(log, databaseAccessor, ctx)
 
 	api.RegisterVideoServiceServer(grpcServer, videoService)
 

@@ -5,25 +5,28 @@ import (
 	"context"
 	"io"
 
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/hashicorp/go-hclog"
 	"github.com/jyotikmayur7/YouCreo/api"
 	"github.com/jyotikmayur7/YouCreo/database"
+	"github.com/jyotikmayur7/YouCreo/utils"
 )
 
 type VideoService struct {
 	DB  *database.DatabaseAccessor
 	log hclog.Logger
+	ctx context.Context
 }
 
-func NewVideoService(l hclog.Logger, db *database.DatabaseAccessor) *VideoService {
+func NewVideoService(l hclog.Logger, db *database.DatabaseAccessor, context context.Context) *VideoService {
 	return &VideoService{
 		DB:  db,
 		log: l,
+		ctx: context,
 	}
 }
 
 func (vs *VideoService) CreateVideo(stream api.VideoService_CreateVideoServer) error {
-
 	req, err := stream.Recv()
 	if err != nil {
 		vs.log.Error("Error: Unable to receive video info ", err)
@@ -33,8 +36,18 @@ func (vs *VideoService) CreateVideo(stream api.VideoService_CreateVideoServer) e
 	videoTitle := req.GetVideoTitle()
 	videoDescription := req.GetVideoDescription()
 
-	videoData := bytes.Buffer{}
+	awsService, err := utils.NewAWSService(vs.ctx)
+	if err != nil {
+		vs.log.Error("Error while loading configurations", err)
+		return err
+	}
+
+	partSize := int64(5 * 1024 * 1024)
+
+	videoBuffer := make([]byte, partSize)
 	videoThumbnail := bytes.Buffer{}
+
+	var parts []*s3.CompletedPart
 
 	for {
 		vs.log.Info("Receiving video data")
