@@ -24,6 +24,8 @@ type Config struct {
 	}
 }
 
+var configuration *Config = nil
+
 func LoadConfig(l hclog.Logger) (*Config, error) {
 	var config *Config
 
@@ -42,6 +44,11 @@ func LoadConfig(l hclog.Logger) (*Config, error) {
 		l.Error("Unable to unmarshall: ", err.Error())
 		return nil, err
 	}
+	configuration = config
 
 	return config, nil
+}
+
+func GetConfig() *Config {
+	return configuration
 }
