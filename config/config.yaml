@@ -8,3 +8,8 @@ server:
 database:
   name: "mongodb"
   uri: "mongodb+srv://orangekun101:mongo-user-pass@youcreo.vkxi3yl.mongodb.net/?retryWrites=true&w=majority"
+aws:
+  video:
+    bucket: "youcreo-videos"
+  thumbnail:
+    bucket: "youcreo-thumbnails"

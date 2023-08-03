@@ -22,6 +22,15 @@ type Config struct {
 		Name string
 		URI  string
 	}
+
+	Aws struct {
+		Video struct {
+			Bucket string
+		}
+		Thumbnail struct {
+			Bucket string
+		}
+	}
 }
 
 var configuration *Config = nil
