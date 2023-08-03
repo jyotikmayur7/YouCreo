@@ -5,6 +5,7 @@ import (
 	"context"
 	"io"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/hashicorp/go-hclog"
 	"github.com/jyotikmayur7/YouCreo/api"
@@ -36,6 +37,13 @@ func (vs *VideoService) CreateVideo(stream api.VideoService_CreateVideoServer) e
 	videoTitle := req.GetVideoTitle()
 	videoDescription := req.GetVideoDescription()
 
+	config := utils.GetConfig()
+
+	createMultipartUploadInput := &s3.CreateMultipartUploadInput{
+		Bucket: aws.String(config.Aws.Video.Bucket),
+		Key:    aws.String(req.GetVideoTitle() + "." + req.GetVideoExtension()),
+	}
+
 	awsService, err := utils.NewAWSService(vs.ctx)
 	if err != nil {
 		vs.log.Error("Error while loading configurations", err)
@@ -48,7 +56,6 @@ func (vs *VideoService) CreateVideo(stream api.VideoService_CreateVideoServer) e
 	videoThumbnail := bytes.Buffer{}
 
 	var parts []*s3.CompletedPart
-
 	for {
 		vs.log.Info("Receiving video data")
 

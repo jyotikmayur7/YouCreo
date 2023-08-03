@@ -84,6 +84,7 @@ message CreateVideoRequest{
     string video_description = 2;
     bytes video_thumbnail = 3;
     bytes video_content = 4;
+    string video_extension = 5;
 }
 
 message CreateVideoResponse{}
