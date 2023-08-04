@@ -33,21 +33,29 @@ func (vs *VideoService) CreateVideo(stream api.VideoService_CreateVideoServer) e
 	}
 
 	videoTitle := req.GetVideoTitle()
+	videoExtension := req.GetVideoExtension()
 	videoDescription := req.GetVideoDescription()
 
 	config := utils.GetConfig()
 	ctx := utils.GetContext()
-
-	createMultipartUploadInput := &s3.CreateMultipartUploadInput{
-		Bucket: aws.String(config.Aws.Video.Bucket),
-		Key:    aws.String(req.GetVideoTitle() + "." + req.GetVideoExtension()),
-	}
-
 	awsService, err := utils.NewAWSService(ctx)
 	if err != nil {
 		vs.log.Error("Error while loading configurations", err)
 		return err
 	}
+
+	createMultipartUploadInput := &s3.CreateMultipartUploadInput{
+		Bucket: aws.String(config.Aws.Video.Bucket),
+		Key:    aws.String(videoTitle + "." + videoExtension),
+	}
+
+	createResp, err := awsService.S3Client.CreateMultipartUpload(ctx, createMultipartUploadInput)
+	if err != nil {
+		vs.log.Error("Error creating multipart upload:", err)
+		return err
+	}
+
+	videoBlobReference := createResp.UploadId
 
 	partSize := int64(5 * 1024 * 1024)
 
@@ -75,18 +83,23 @@ func (vs *VideoService) CreateVideo(stream api.VideoService_CreateVideoServer) e
 		}
 
 		videoChunk := req.GetVideoContent()
-		// Instead of storing data locally need to send this chunk to aws S3 to store it so that bytes.Buffer{} won't exceed the size limit
 		videoData.Write(videoChunk)
 		if int64(videoData.Len()) >= partSize {
 			// Upload the buffer to s3
+			partInput := &s3.UploadPartInput{
+				Body:     bytes.NewReader(videoData.Bytes()),
+				Bucket:   aws.String(config.Aws.Video.Bucket),
+				Key:      aws.String(videoTitle + "." + videoExtension),
+				UploadId: videoBlobReference,
+				// ContentLength: aws.Int64(int64(videoData.Len()),
+				PartNumber: aws.Int64(int64(len(parts) + 1)),
+			}
+
+			partResp, err := awsService.S3Client.UploadPart(ctx, partInput)
 		}
 	}
 
-	//TODO's
-
-	// AWS s3 store video call
-	//blobReference :=
-
+	//TODO after multipart upload:
 	//Store the info on database
 
 	return nil
