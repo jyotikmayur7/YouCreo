@@ -16,14 +16,12 @@ import (
 type VideoService struct {
 	DB  *database.DatabaseAccessor
 	log hclog.Logger
-	ctx context.Context
 }
 
-func NewVideoService(l hclog.Logger, db *database.DatabaseAccessor, context context.Context) *VideoService {
+func NewVideoService(l hclog.Logger, db *database.DatabaseAccessor) *VideoService {
 	return &VideoService{
 		DB:  db,
 		log: l,
-		ctx: context,
 	}
 }
 
@@ -38,13 +36,14 @@ func (vs *VideoService) CreateVideo(stream api.VideoService_CreateVideoServer) e
 	videoDescription := req.GetVideoDescription()
 
 	config := utils.GetConfig()
+	ctx := utils.GetContext()
 
 	createMultipartUploadInput := &s3.CreateMultipartUploadInput{
 		Bucket: aws.String(config.Aws.Video.Bucket),
 		Key:    aws.String(req.GetVideoTitle() + "." + req.GetVideoExtension()),
 	}
 
-	awsService, err := utils.NewAWSService(vs.ctx)
+	awsService, err := utils.NewAWSService(ctx)
 	if err != nil {
 		vs.log.Error("Error while loading configurations", err)
 		return err
@@ -52,7 +51,8 @@ func (vs *VideoService) CreateVideo(stream api.VideoService_CreateVideoServer) e
 
 	partSize := int64(5 * 1024 * 1024)
 
-	videoBuffer := make([]byte, partSize)
+	//var videoBuffer []byte = make([]byte, partSize)
+	videoData := bytes.Buffer{}
 	videoThumbnail := bytes.Buffer{}
 
 	var parts []*s3.CompletedPart
@@ -77,6 +77,9 @@ func (vs *VideoService) CreateVideo(stream api.VideoService_CreateVideoServer) e
 		videoChunk := req.GetVideoContent()
 		// Instead of storing data locally need to send this chunk to aws S3 to store it so that bytes.Buffer{} won't exceed the size limit
 		videoData.Write(videoChunk)
+		if int64(videoData.Len()) >= partSize {
+			// Upload the buffer to s3
+		}
 	}
 
 	//TODO's

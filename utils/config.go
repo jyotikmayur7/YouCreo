@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"context"
+
 	"github.com/hashicorp/go-hclog"
 	"github.com/spf13/viper"
 )
@@ -34,6 +36,7 @@ type Config struct {
 }
 
 var configuration *Config = nil
+var ctx = context.Background()
 
 func LoadConfig(l hclog.Logger) (*Config, error) {
 	var config *Config
@@ -60,4 +63,8 @@ func LoadConfig(l hclog.Logger) (*Config, error) {
 
 func GetConfig() *Config {
 	return configuration
+}
+
+func GetContext() context.Context {
+	return ctx
 }

@@ -11,10 +11,9 @@ import (
 
 type VideoAccessor struct {
 	Collection *mongo.Collection
-	ctx        context.Context
 }
 
-func NewVideoAccessor(col *mongo.Collection, ctx context.Context) *VideoAccessor {
+func NewVideoAccessor(col *mongo.Collection) *VideoAccessor {
 	return &VideoAccessor{Collection: col}
 }
 
@@ -25,10 +24,10 @@ type VideoCollection interface {
 	UpdateVideo(models.Video) error
 }
 
-func (v *VideoAccessor) CreateVideo(video models.Video) error {
+func (v *VideoAccessor) CreateVideo(ctx context.Context, video models.Video) error {
 	insert := video.ToBson()
 
-	_, err := v.Collection.InsertOne(v.ctx, insert)
+	_, err := v.Collection.InsertOne(ctx, insert)
 	if err != nil {
 		return err
 	}
@@ -36,15 +35,15 @@ func (v *VideoAccessor) CreateVideo(video models.Video) error {
 	return nil
 }
 
-func (v *VideoAccessor) GetAllVideos() ([]models.Video, error) {
+func (v *VideoAccessor) GetAllVideos(ctx context.Context) ([]models.Video, error) {
 	var allVideos []models.Video
 
-	cursor, err := v.Collection.Find(v.ctx, bson.D{})
+	cursor, err := v.Collection.Find(ctx, bson.D{})
 	if err != nil {
 		return allVideos, err
 	}
 
-	for cursor.Next(v.ctx) {
+	for cursor.Next(ctx) {
 		var video models.Video
 		err := cursor.Decode(&video)
 		if err != nil {
@@ -57,18 +56,18 @@ func (v *VideoAccessor) GetAllVideos() ([]models.Video, error) {
 		return allVideos, nil
 	}
 
-	err = cursor.Close(v.ctx)
+	err = cursor.Close(ctx)
 
 	return allVideos, err
 
 }
 
-func (v *VideoAccessor) GetVideoById(ID primitive.ObjectID) (models.Video, error) {
+func (v *VideoAccessor) GetVideoById(ctx context.Context, ID primitive.ObjectID) (models.Video, error) {
 	var video models.Video
 
 	filter := bson.D{primitive.E{Key: "_id", Value: ID}}
 
-	err := v.Collection.FindOne(v.ctx, filter).Decode(&video)
+	err := v.Collection.FindOne(ctx, filter).Decode(&video)
 	if err != nil {
 		return video, err
 	}
@@ -76,18 +75,18 @@ func (v *VideoAccessor) GetVideoById(ID primitive.ObjectID) (models.Video, error
 	return video, err
 }
 
-func (v *VideoAccessor) DeleteVideoById(ID primitive.ObjectID) error {
+func (v *VideoAccessor) DeleteVideoById(ctx context.Context, ID primitive.ObjectID) error {
 	filter := bson.D{primitive.E{Key: "_id", Value: ID}}
-	_, err := v.Collection.DeleteOne(v.ctx, filter)
+	_, err := v.Collection.DeleteOne(ctx, filter)
 
 	return err
 
 }
 
-func (v *VideoAccessor) UpdateVideo(video models.Video) error {
+func (v *VideoAccessor) UpdateVideo(ctx context.Context, video models.Video) error {
 	filter := bson.D{primitive.E{Key: "_id", Value: video.ID}}
 	update := video.ToBson()
-	_, err := v.Collection.UpdateOne(v.ctx, filter, update)
+	_, err := v.Collection.UpdateOne(ctx, filter, update)
 
 	return err
 }
