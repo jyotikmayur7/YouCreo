@@ -1,8 +1,6 @@
 package utils
 
 import (
-	"context"
-
 	"github.com/hashicorp/go-hclog"
 	"github.com/spf13/viper"
 )
@@ -21,8 +19,11 @@ type Config struct {
 	}
 
 	Database struct {
-		Name string
-		URI  string
+		Name       string
+		URI        string
+		Collection struct {
+			Video string
+		}
 	}
 
 	Aws struct {
@@ -32,11 +33,11 @@ type Config struct {
 		Thumbnail struct {
 			Bucket string
 		}
+		Region string
 	}
 }
 
 var configuration *Config = nil
-var ctx = context.Background()
 
 func LoadConfig(l hclog.Logger) (*Config, error) {
 	var config *Config
@@ -63,8 +64,4 @@ func LoadConfig(l hclog.Logger) (*Config, error) {
 
 func GetConfig() *Config {
 	return configuration
-}
-
-func GetContext() context.Context {
-	return ctx
 }

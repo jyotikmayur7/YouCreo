@@ -49,13 +49,13 @@ func (vs *VideoService) CreateVideo(stream api.VideoService_CreateVideoServer) e
 		Key:    aws.String(videoTitle + "." + videoExtension),
 	}
 
-	createResp, err := awsService.S3Client.CreateMultipartUpload(ctx, createMultipartUploadInput)
+	createdResp, err := awsService.S3Client.CreateMultipartUpload(ctx, createMultipartUploadInput)
 	if err != nil {
 		vs.log.Error("Error creating multipart upload:", err)
 		return err
 	}
 
-	videoBlobReference := createResp.UploadId
+	videoBlobReference := createdResp.UploadId
 
 	partSize := int64(5 * 1024 * 1024)
 
@@ -87,15 +87,23 @@ func (vs *VideoService) CreateVideo(stream api.VideoService_CreateVideoServer) e
 		if int64(videoData.Len()) >= partSize {
 			// Upload the buffer to s3
 			partInput := &s3.UploadPartInput{
-				Body:     bytes.NewReader(videoData.Bytes()),
-				Bucket:   aws.String(config.Aws.Video.Bucket),
-				Key:      aws.String(videoTitle + "." + videoExtension),
-				UploadId: videoBlobReference,
-				// ContentLength: aws.Int64(int64(videoData.Len()),
-				PartNumber: aws.Int64(int64(len(parts) + 1)),
+				Body:          bytes.NewReader(videoData.Bytes()),
+				Bucket:        aws.String(config.Aws.Video.Bucket),
+				Key:           aws.String(videoTitle + "." + videoExtension),
+				UploadId:      videoBlobReference,
+				ContentLength: *aws.Int64(int64(videoData.Len())),
+				PartNumber:    *aws.Int32(int32(len(parts)) + 1),
 			}
 
 			partResp, err := awsService.S3Client.UploadPart(ctx, partInput)
+			if err != nil {
+				vs.log.Error("Error uploading part: ", err)
+				return err
+			}
+
+			parts = append(parts, &s3.UploadPartOutput{
+				ETag: partResp.ETag,
+			})
 		}
 	}
 

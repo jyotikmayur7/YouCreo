@@ -20,15 +20,16 @@ import (
 )
 
 func StartService() {
-	ctx := utils.GetContext()
+	ctx := context.Background()
 	log := hclog.Default()
 	config, err := utils.LoadConfig(log)
 	if err != nil {
 		log.Error(err.Error())
 	}
+	databaseAccessor := database.NewDatabaseAccessor(database.DatabaseClient(log, ctx))
+	databaseAccessor = initDatabaseAccessor(databaseAccessor, config)
+
 	grpcServer := grpc.NewServer()
-	databaseAccessor := database.NewDatabaseAccessor(database.DatabaseClient(log))
-	databaseAccessor = initDatabaseAccessor(databaseAccessor)
 	videoService := video_service.NewVideoService(log, databaseAccessor)
 
 	api.RegisterVideoServiceServer(grpcServer, videoService)
@@ -98,10 +99,10 @@ func StartService() {
 	log.Info("Servers gracefully stopped!")
 }
 
-func initDatabaseAccessor(da *database.DatabaseAccessor) *database.DatabaseAccessor {
-	db := da.Client.Database("YouCreo")
-	videoCollection := db.Collection("Video")
+func initDatabaseAccessor(da *database.DatabaseAccessor, config *utils.Config) *database.DatabaseAccessor {
+	db := da.Client.Database(config.Database.Name)
+	videoCollection := db.Collection(config.Database.Collection.Video)
 	videoAccessor := database.NewVideoAccessor(videoCollection)
-	da.WithVideoAccessor(*videoAccessor)
+	da = da.WithVideoAccessor(*videoAccessor)
 	return da
 }

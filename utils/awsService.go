@@ -12,7 +12,8 @@ type AWSService struct {
 }
 
 func NewAWSService(ctx context.Context) (*AWSService, error) {
-	cfg, err := config.LoadDefaultConfig(ctx, config.WithRegion("eu-west-1"))
+	sysConfig := GetConfig()
+	cfg, err := config.LoadDefaultConfig(ctx, config.WithRegion(sysConfig.Aws.Region))
 	if err != nil {
 		return nil, err
 	}

@@ -18,10 +18,11 @@ func NewVideoAccessor(col *mongo.Collection) *VideoAccessor {
 }
 
 type VideoCollection interface {
-	CreateVideo(models.Video) error
-	GetAllVideos() ([]models.Video, error)
-	DeleteVideoById(ID int) error
-	UpdateVideo(models.Video) error
+	CreateVideo(ctx context.Context, video models.Video) error
+	GetAllVideos(ctx context.Context) ([]models.Video, error)
+	GetVideoById(ctx context.Context, ID primitive.ObjectID) (models.Video, error)
+	DeleteVideoById(ctx context.Context, ID primitive.ObjectID) error
+	UpdateVideo(ctx context.Context, video models.Video) error
 }
 
 func (v *VideoAccessor) CreateVideo(ctx context.Context, video models.Video) error {
