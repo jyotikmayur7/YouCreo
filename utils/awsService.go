@@ -3,22 +3,22 @@ package utils
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go-v2/config"
-	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/s3"
 )
 
 type AWSService struct {
-	S3Client *s3.Client
+	S3Client *s3.S3
 }
 
 func NewAWSService(ctx context.Context) (*AWSService, error) {
 	sysConfig := GetConfig()
-	cfg, err := config.LoadDefaultConfig(ctx, config.WithRegion(sysConfig.Aws.Region))
-	if err != nil {
-		return nil, err
-	}
 
 	return &AWSService{
-		S3Client: s3.NewFromConfig(cfg),
+		S3Client: s3.New(session.Must(
+			session.NewSession(&aws.Config{
+				Region: aws.String(sysConfig.Aws.Region),
+			}))),
 	}, nil
 }
