@@ -12,7 +12,7 @@ type AWSService struct {
 	S3Client *s3.S3
 }
 
-func NewAWSService(ctx context.Context) (*AWSService, error) {
+func NewAWSService(ctx context.Context) *AWSService {
 	sysConfig := GetConfig()
 
 	return &AWSService{
@@ -20,5 +20,5 @@ func NewAWSService(ctx context.Context) (*AWSService, error) {
 			session.NewSession(&aws.Config{
 				Region: aws.String(sysConfig.Aws.Region),
 			}))),
-	}, nil
+	}
 }
