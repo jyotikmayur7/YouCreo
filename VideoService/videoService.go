@@ -14,14 +14,16 @@ import (
 )
 
 type VideoService struct {
-	DB  *database.DatabaseAccessor
-	log hclog.Logger
+	DB         *database.DatabaseAccessor
+	log        hclog.Logger
+	awsService *utils.AWSService
 }
 
-func NewVideoService(l hclog.Logger, db *database.DatabaseAccessor) *VideoService {
+func NewVideoService(l hclog.Logger, db *database.DatabaseAccessor, as *utils.AWSService) *VideoService {
 	return &VideoService{
-		DB:  db,
-		log: l,
+		DB:         db,
+		log:        l,
+		awsService: as,
 	}
 }
 
@@ -37,8 +39,8 @@ func (vs *VideoService) CreateVideo(stream api.VideoService_CreateVideoServer) e
 	videoDescription := req.GetVideoDescription()
 
 	config := utils.GetConfig()
-	ctx := utils.GetContext()
-	awsService, err := utils.NewAWSService(ctx)
+	ctx := utils.GetContext() // need to get the context from middleware
+
 	if err != nil {
 		vs.log.Error("Error while loading configurations", err)
 		return err
@@ -49,7 +51,7 @@ func (vs *VideoService) CreateVideo(stream api.VideoService_CreateVideoServer) e
 		Key:    aws.String(videoTitle + "." + videoExtension),
 	}
 
-	createdResp, err := awsService.S3Client.CreateMultipartUpload(ctx, createMultipartUploadInput)
+	createdResp, err := vs.awsService.S3Client.CreateMultipartUpload(ctx, createMultipartUploadInput)
 	if err != nil {
 		vs.log.Error("Error creating multipart upload:", err)
 		return err

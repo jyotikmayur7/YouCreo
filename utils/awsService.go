@@ -1,8 +1,6 @@
 package utils
 
 import (
-	"context"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
@@ -12,7 +10,7 @@ type AWSService struct {
 	S3Client *s3.S3
 }
 
-func NewAWSService(ctx context.Context) *AWSService {
+func NewAWSService() *AWSService {
 	sysConfig := GetConfig()
 
 	return &AWSService{

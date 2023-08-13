@@ -28,9 +28,10 @@ func StartService() {
 	}
 	databaseAccessor := database.NewDatabaseAccessor(database.DatabaseClient(log, ctx))
 	databaseAccessor = initDatabaseAccessor(databaseAccessor, config)
+	awsService := utils.NewAWSService()
 
 	grpcServer := grpc.NewServer()
-	videoService := video_service.NewVideoService(log, databaseAccessor)
+	videoService := video_service.NewVideoService(log, databaseAccessor, awsService)
 
 	api.RegisterVideoServiceServer(grpcServer, videoService)
 
