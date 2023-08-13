@@ -54,7 +54,7 @@ func StartService() {
 	}()
 
 	conn, err := grpc.DialContext(
-		context.Background(),
+		ctx,
 		config.Server.Host+":"+config.Server.Grpc.Port,
 		grpc.WithBlock(),
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
