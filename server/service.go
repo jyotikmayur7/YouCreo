@@ -13,6 +13,7 @@ import (
 	video_service "github.com/jyotikmayur7/YouCreo/VideoService"
 	"github.com/jyotikmayur7/YouCreo/api"
 	"github.com/jyotikmayur7/YouCreo/database"
+	"github.com/jyotikmayur7/YouCreo/middleware"
 	"github.com/jyotikmayur7/YouCreo/utils"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -72,7 +73,7 @@ func StartService() {
 
 	gatewayServer := &http.Server{
 		Addr:    ":" + config.Server.Gateway.Port,
-		Handler: gatewayMux,
+		Handler: middleware.AddContext(ctx, gatewayMux),
 	}
 
 	log.Info("Serving gRPC-Gateway on ", config.Server.Host+":"+config.Server.Gateway.Port)

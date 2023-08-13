@@ -39,7 +39,7 @@ func (vs *VideoService) CreateVideo(stream api.VideoService_CreateVideoServer) e
 	videoDescription := req.GetVideoDescription()
 
 	config := utils.GetConfig()
-	ctx := utils.GetContext() // need to get the context from middleware
+	ctx := stream.Context()
 
 	if err != nil {
 		vs.log.Error("Error while loading configurations", err)
