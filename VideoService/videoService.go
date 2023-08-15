@@ -46,12 +46,10 @@ func (vs *VideoService) CreateVideo(stream api.VideoService_CreateVideoServer) e
 		return err
 	}
 
-	createMultipartUploadInput := &s3.CreateMultipartUploadInput{
+	createdResp, err := vs.awsService.S3Client.CreateMultipartUpload(&s3.CreateMultipartUploadInput{
 		Bucket: aws.String(config.Aws.Video.Bucket),
 		Key:    aws.String(videoTitle + "." + videoExtension),
-	}
-
-	createdResp, err := vs.awsService.S3Client.CreateMultipartUpload(ctx, createMultipartUploadInput)
+	})
 	if err != nil {
 		vs.log.Error("Error creating multipart upload:", err)
 		return err
@@ -59,57 +57,76 @@ func (vs *VideoService) CreateVideo(stream api.VideoService_CreateVideoServer) e
 
 	videoBlobReference := createdResp.UploadId
 
-	partSize := int64(5 * 1024 * 1024)
-
-	//var videoBuffer []byte = make([]byte, partSize)
 	videoData := bytes.Buffer{}
 	videoThumbnail := bytes.Buffer{}
 
 	var parts []*s3.CompletedPart
-	for {
-		vs.log.Info("Receiving video data")
+	partSize := int64(5 * 1024 * 1024)
+	partNum := 1
 
-		req, err := stream.Recv()
-		if err == io.EOF {
-			vs.log.Info("Client has stopped the upload, upload is finished ", err)
-			break
-		}
-		if err != nil {
-			vs.log.Error("Error: Unable to read video chunk from client ", err)
-			return err
-		}
+	go func() {
+		for {
+			vs.log.Info("Receiving video data")
 
-		thumbnailChunk := req.GetVideoThumbnail()
-		if thumbnailChunk != nil {
-			videoThumbnail.Write(thumbnailChunk)
-		}
+			req, err := stream.Recv()
+			if err == io.EOF {
+				//Seding the last chunk of video
+				partResp, err := vs.awsService.UploadPart(createdResp, videoData, partNum)
+				if err != nil {
+					return err
+				}
+				parts = append(parts, &s3.CompletedPart{
+					ETag:       partResp.ETag,
+					PartNumber: aws.Int64(int64(partNum)),
+				})
+				partNum++
 
-		videoChunk := req.GetVideoContent()
-		videoData.Write(videoChunk)
-		if int64(videoData.Len()) >= partSize {
-			// Upload the buffer to s3
-			partInput := &s3.UploadPartInput{
-				Body:          bytes.NewReader(videoData.Bytes()),
-				Bucket:        aws.String(config.Aws.Video.Bucket),
-				Key:           aws.String(videoTitle + "." + videoExtension),
-				UploadId:      videoBlobReference,
-				ContentLength: *aws.Int64(int64(videoData.Len())),
-				PartNumber:    *aws.Int32(int32(len(parts)) + 1),
+				vs.log.Info("Client has stopped the upload, upload is finished ", err)
+				break
 			}
-
-			partResp, err := awsService.S3Client.UploadPart(ctx, partInput)
 			if err != nil {
-				vs.log.Error("Error uploading part: ", err)
+				vs.log.Error("Error: Unable to read video chunk from client ", err)
 				return err
 			}
 
-			parts = append(parts, &s3.UploadPartOutput{
-				ETag: partResp.ETag,
-			})
-		}
-	}
+			thumbnailChunk := req.GetVideoThumbnail()
+			if thumbnailChunk != nil {
+				videoThumbnail.Write(thumbnailChunk)
+			}
 
-	//TODO after multipart upload:
+			videoChunk := req.GetVideoContent()
+			videoData.Write(videoChunk)
+			if int64(videoData.Len()) >= partSize {
+				// Uploading the buffer chunk to s3
+				partResp, err := vs.awsService.UploadPart(createdResp, videoData, partNum)
+				if err != nil {
+					return err
+				}
+				parts = append(parts, &s3.CompletedPart{
+					ETag:       partResp.ETag,
+					PartNumber: aws.Int64(int64(partNum)),
+				})
+
+				partNum++
+			}
+		}
+		// Finishing the mulitpart part upload
+		resp, err := vs.awsService.S3Client.CompleteMultipartUpload(&s3.CompleteMultipartUploadInput{
+			Bucket:   createdResp.Bucket,
+			Key:      createdResp.Key,
+			UploadId: createdResp.UploadId,
+			MultipartUpload: &s3.CompletedMultipartUpload{
+				Parts: parts,
+			},
+		})
+		if err != nil {
+			vs.log.Error("Error finishing mutipartupload: ", err)
+		} else {
+			vs.log.Info(resp.String())
+		}
+	}()
+
+	//TODO: Upload thumbnail with single uplaod
 	//Store the info on database
 
 	return nil
