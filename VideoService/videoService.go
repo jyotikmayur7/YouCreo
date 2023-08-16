@@ -37,6 +37,9 @@ func (vs *VideoService) CreateVideo(stream api.VideoService_CreateVideoServer) e
 	videoTitle := req.GetVideoTitle()
 	videoExtension := req.GetVideoExtension()
 	videoDescription := req.GetVideoDescription()
+	// need to add user ID before video title on the key to minatain unique key entry
+	videoBlobReferenceKey := videoTitle + "." + videoExtension
+	thumbnailBlobReferenceKey := videoTitle
 
 	config := utils.GetConfig()
 	ctx := stream.Context()
@@ -48,14 +51,12 @@ func (vs *VideoService) CreateVideo(stream api.VideoService_CreateVideoServer) e
 
 	createdResp, err := vs.awsService.S3Client.CreateMultipartUpload(&s3.CreateMultipartUploadInput{
 		Bucket: aws.String(config.Aws.Video.Bucket),
-		Key:    aws.String(videoTitle + "." + videoExtension),
+		Key:    aws.String(videoBlobReferenceKey),
 	})
 	if err != nil {
 		vs.log.Error("Error creating multipart upload:", err)
 		return err
 	}
-
-	videoBlobReference := createdResp.UploadId
 
 	videoData := bytes.Buffer{}
 	videoThumbnail := bytes.Buffer{}
@@ -64,22 +65,34 @@ func (vs *VideoService) CreateVideo(stream api.VideoService_CreateVideoServer) e
 	partSize := int64(5 * 1024 * 1024)
 	partNum := 1
 
-	go func() {
+	// How to handler error here? without return nil at the end of statement?
+	go func() error {
 		for {
-			vs.log.Info("Receiving video data")
+			vs.log.Info("Receiving video and thumbnail data")
 
 			req, err := stream.Recv()
 			if err == io.EOF {
 				//Seding the last chunk of video
-				partResp, err := vs.awsService.UploadPart(createdResp, videoData, partNum)
-				if err != nil {
-					return err
+				partResp, err1 := vs.awsService.UploadPart(createdResp, videoData, partNum)
+				if err1 != nil {
+					return err1
 				}
 				parts = append(parts, &s3.CompletedPart{
 					ETag:       partResp.ETag,
 					PartNumber: aws.Int64(int64(partNum)),
 				})
 				partNum++
+
+				// Uploading thumbnail
+				_, err2 := vs.awsService.S3Client.PutObject(&s3.PutObjectInput{
+					Body:   bytes.NewReader(videoThumbnail.Bytes()),
+					Bucket: aws.String(config.Aws.Thumbnail.Bucket),
+					Key:    aws.String(thumbnailBlobReferenceKey),
+				})
+				if err2 != nil {
+					vs.log.Error("Failed to upload thumbnail ", err2)
+					return err2
+				}
 
 				vs.log.Info("Client has stopped the upload, upload is finished ", err)
 				break
@@ -124,10 +137,9 @@ func (vs *VideoService) CreateVideo(stream api.VideoService_CreateVideoServer) e
 		} else {
 			vs.log.Info(resp.String())
 		}
-	}()
 
-	//TODO: Upload thumbnail with single uplaod
-	//Store the info on database
+		return nil
+	}()
 
 	return nil
 }
