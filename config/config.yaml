@@ -1,0 +1,18 @@
+environment: "dev"
+server:
+  host: "127.0.0.1"
+  grpc:
+    port: "8000"
+  gateway:
+    port: "443"
+database:
+  name: "YouCreo"
+  uri: "mongodb+srv://orangekun101:mongo-user-pass@youcreo.vkxi3yl.mongodb.net/?retryWrites=true&w=majority"
+  collection:
+    video: "Video"
+aws:
+  video:
+    bucket: "youcreo-videos"
+  thumbnail:
+    bucket: "youcreo-thumbnails"
+  region: "eu-west-1"
