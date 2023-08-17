@@ -56,6 +56,7 @@ func (vs *VideoService) CreateVideo(stream api.VideoService_CreateVideoServer) e
 
 	// How to handler error here? without return nil at the end of statement?
 	go func() error {
+		// Starting multipart upload process
 		createdResp, errMP := vs.awsService.S3Client.CreateMultipartUpload(&s3.CreateMultipartUploadInput{
 			Bucket: aws.String(config.Aws.Video.Bucket),
 			Key:    aws.String(videoBlobReferenceKey),
@@ -121,6 +122,7 @@ func (vs *VideoService) CreateVideo(stream api.VideoService_CreateVideoServer) e
 				partNum++
 			}
 		}
+
 		// Finishing the mulitpart part upload
 		resp, err := vs.awsService.S3Client.CompleteMultipartUpload(&s3.CompleteMultipartUploadInput{
 			Bucket:   createdResp.Bucket,
