@@ -4,12 +4,14 @@ import (
 	"bytes"
 	"context"
 	"io"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/hashicorp/go-hclog"
 	"github.com/jyotikmayur7/YouCreo/api"
 	"github.com/jyotikmayur7/YouCreo/database"
+	"github.com/jyotikmayur7/YouCreo/models"
 	"github.com/jyotikmayur7/YouCreo/utils"
 )
 
@@ -34,6 +36,7 @@ func (vs *VideoService) CreateVideo(stream api.VideoService_CreateVideoServer) e
 		return err
 	}
 
+	videoModel := &models.Video{}
 	videoTitle := req.GetVideoTitle()
 	videoExtension := req.GetVideoExtension()
 	videoDescription := req.GetVideoDescription()
@@ -44,20 +47,6 @@ func (vs *VideoService) CreateVideo(stream api.VideoService_CreateVideoServer) e
 	config := utils.GetConfig()
 	ctx := stream.Context()
 
-	if err != nil {
-		vs.log.Error("Error while loading configurations", err)
-		return err
-	}
-
-	createdResp, err := vs.awsService.S3Client.CreateMultipartUpload(&s3.CreateMultipartUploadInput{
-		Bucket: aws.String(config.Aws.Video.Bucket),
-		Key:    aws.String(videoBlobReferenceKey),
-	})
-	if err != nil {
-		vs.log.Error("Error creating multipart upload:", err)
-		return err
-	}
-
 	videoData := bytes.Buffer{}
 	videoThumbnail := bytes.Buffer{}
 
@@ -67,6 +56,15 @@ func (vs *VideoService) CreateVideo(stream api.VideoService_CreateVideoServer) e
 
 	// How to handler error here? without return nil at the end of statement?
 	go func() error {
+		createdResp, errMP := vs.awsService.S3Client.CreateMultipartUpload(&s3.CreateMultipartUploadInput{
+			Bucket: aws.String(config.Aws.Video.Bucket),
+			Key:    aws.String(videoBlobReferenceKey),
+		})
+		if errMP != nil {
+			vs.log.Error("Error creating multipart upload:", err)
+			return errMP
+		}
+
 		for {
 			vs.log.Info("Receiving video and thumbnail data")
 
@@ -136,6 +134,24 @@ func (vs *VideoService) CreateVideo(stream api.VideoService_CreateVideoServer) e
 			vs.log.Error("Error finishing mutipartupload: ", err)
 		} else {
 			vs.log.Info(resp.String())
+		}
+
+		// Adding data in DB
+		videoModel.Title = videoTitle
+		videoModel.Description = videoDescription
+		videoModel.PublishedTime = time.Now()
+		videoModel.Likes = 0
+		videoModel.Views = 0
+		videoModel.VideoBlobReference = videoBlobReferenceKey
+		videoModel.ThumbnailBlobReference = thumbnailBlobReferenceKey
+		// Need to fetch channel name from user id or from channel table using user id
+		// videoModel.ChannelName = ctx.Value("user_name")
+		videoModel.ChannelName = "testChannel"
+
+		dbErr := vs.DB.Video.CreateVideo(ctx, *videoModel)
+		if dbErr != nil {
+			vs.log.Error("Unable to add Video info on DB ", dbErr)
+			return dbErr
 		}
 
 		return nil
