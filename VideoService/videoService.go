@@ -3,6 +3,7 @@ package video_service
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"io"
 	"time"
 
@@ -41,7 +42,7 @@ func (vs *VideoService) CreateVideo(stream api.VideoService_CreateVideoServer) e
 	videoExtension := req.GetVideoExtension()
 	videoDescription := req.GetVideoDescription()
 	// need to add user ID before video title on the key to minatain unique key entry
-	videoBlobReferenceKey := videoTitle + "." + videoExtension
+	videoBlobReferenceKey := fmt.Sprintf("%s.%s", videoTitle, videoExtension)
 	thumbnailBlobReferenceKey := videoTitle
 
 	config := utils.GetConfig()
