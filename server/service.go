@@ -9,6 +9,7 @@ import (
 	"os/signal"
 	"time"
 
+	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/hashicorp/go-hclog"
 	video_service "github.com/jyotikmayur7/YouCreo/VideoService"
@@ -65,7 +66,10 @@ func StartService() {
 		log.Error("Failed to dial server:", err)
 	}
 
+	gatewayRouter := mux.NewRouter()
 	gatewayMux := runtime.NewServeMux()
+	gatewayRouter.Handle("/", gatewayMux)
+	gatewayRouter.Use(middleware.AddContext)
 
 	err = api.RegisterVideoServiceHandler(ctx, gatewayMux, conn)
 	if err != nil {
@@ -74,7 +78,7 @@ func StartService() {
 
 	gatewayServer := &http.Server{
 		Addr:    ":" + config.Server.Gateway.Port,
-		Handler: middleware.AddContext(ctx, gatewayMux),
+		Handler: gatewayMux,
 	}
 
 	log.Info("Serving gRPC-Gateway on ", fmt.Sprintf("%s:%s", config.Server.Host, config.Server.Gateway.Port))
