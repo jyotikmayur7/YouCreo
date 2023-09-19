@@ -163,8 +163,9 @@ func (vs *VideoService) CreateVideo(stream api.VideoService_CreateVideoServer) e
 	return nil
 }
 
-func (vs *VideoService) DeleteVideo(context.Context, *api.DeleteVideoRequest) (*api.DeleteVideoResponse, error) {
-	vs.log.Info("Delete Method")
+func (vs *VideoService) DeleteVideo(ctx context.Context, req *api.DeleteVideoRequest) (*api.DeleteVideoResponse, error) {
+	value := ctx.Value("test")
+	vs.log.Info("Delete Method ", value)
 	return &api.DeleteVideoResponse{}, nil
 }
 func (vs *VideoService) SteamVideo(req *api.StreamVideoRequest, stream api.VideoService_SteamVideoServer) error {

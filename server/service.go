@@ -9,7 +9,6 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/hashicorp/go-hclog"
 	video_service "github.com/jyotikmayur7/YouCreo/VideoService"
@@ -33,7 +32,10 @@ func StartService() {
 	databaseAccessor = initDatabaseAccessor(databaseAccessor, config)
 	awsService := utils.NewAWSService(log)
 
-	grpcServer := grpc.NewServer()
+	grpcServer := grpc.NewServer(
+		grpc.StreamInterceptor(middleware.AddContextInterceptorStream(ctx)),
+		grpc.UnaryInterceptor(middleware.AddContextInterceptorUnary(ctx)),
+	)
 	videoService := video_service.NewVideoService(log, databaseAccessor, awsService)
 
 	api.RegisterVideoServiceServer(grpcServer, videoService)
@@ -66,10 +68,7 @@ func StartService() {
 		log.Error("Failed to dial server:", err)
 	}
 
-	gatewayRouter := mux.NewRouter()
 	gatewayMux := runtime.NewServeMux()
-	gatewayRouter.Handle("/", gatewayMux)
-	gatewayRouter.Use(middleware.AddContext)
 
 	err = api.RegisterVideoServiceHandler(ctx, gatewayMux, conn)
 	if err != nil {

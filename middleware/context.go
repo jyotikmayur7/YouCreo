@@ -2,16 +2,27 @@ package middleware
 
 import (
 	"context"
-	"net/http"
 
 	"github.com/hashicorp/go-hclog"
+	"google.golang.org/grpc"
 )
 
-func AddContext(h http.Handler) http.Handler {
-	ctx := context.Background()
-	log := hclog.Default()
-	log.Error("TEST MIDDLEWARE")
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		h.ServeHTTP(w, r.WithContext(ctx))
-	})
+func AddContextInterceptorUnary(ctxMain context.Context) grpc.UnaryServerInterceptor {
+	return func(ctxSubMain context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+		log := hclog.Default()
+		log.Error("Test Middleware")
+		test := "testStringFromMiddleware"
+		ctx := context.WithValue(ctxMain, "test", test)
+		return handler(ctx, req)
+	}
+}
+
+func AddContextInterceptorStream(ctxMain context.Context) grpc.StreamServerInterceptor {
+	return func(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
+		log := hclog.Default()
+		log.Error("Test Middleware")
+		test := "testStringFromMiddleware"
+		ctx := context.WithValue(ctxMain, "test", test)
+		return handler(ctx, ss)
+	}
 }
