@@ -23,6 +23,7 @@ func AddContextInterceptorStream(ctxMain context.Context) grpc.StreamServerInter
 		log.Error("Test Middleware from stream")
 		test := "testStringFromMiddleware"
 		ctx := context.WithValue(ctxMain, "test", test)
-		return handler(ctx, ss)
+		ss.Context().Value(ctx)
+		return handler(srv, ss)
 	}
 }
