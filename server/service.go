@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"net"
 	"net/http"
 	"os"
@@ -31,7 +32,10 @@ func StartService() {
 	databaseAccessor = initDatabaseAccessor(databaseAccessor, config)
 	awsService := utils.NewAWSService(log)
 
-	grpcServer := grpc.NewServer()
+	grpcServer := grpc.NewServer(
+		grpc.StreamInterceptor(middleware.AddContextInterceptorStream(ctx)),
+		grpc.UnaryInterceptor(middleware.AddContextInterceptorUnary(ctx)),
+	)
 	videoService := video_service.NewVideoService(log, databaseAccessor, awsService)
 
 	api.RegisterVideoServiceServer(grpcServer, videoService)
@@ -40,13 +44,13 @@ func StartService() {
 
 	// Healthend point is required
 
-	l, err := net.Listen("tcp", ":"+config.Server.Grpc.Port)
+	l, err := net.Listen("tcp", fmt.Sprintf(":%s", config.Server.Grpc.Port))
 	if err != nil {
 		log.Error("Unable to listen", "error", err)
 		os.Exit(1)
 	}
 
-	log.Info("Serving gRPC on ", config.Server.Host+":"+config.Server.Grpc.Port)
+	log.Info("Serving gRPC on ", fmt.Sprintf("%s:%s", config.Server.Host, config.Server.Grpc.Port))
 	go func() {
 		err := grpcServer.Serve(l)
 		if err != nil {
@@ -56,7 +60,7 @@ func StartService() {
 
 	conn, err := grpc.DialContext(
 		ctx,
-		config.Server.Host+":"+config.Server.Grpc.Port,
+		fmt.Sprintf("%s:%s", config.Server.Host, config.Server.Grpc.Port),
 		grpc.WithBlock(),
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
@@ -73,10 +77,10 @@ func StartService() {
 
 	gatewayServer := &http.Server{
 		Addr:    ":" + config.Server.Gateway.Port,
-		Handler: middleware.AddContext(ctx, gatewayMux),
+		Handler: gatewayMux,
 	}
 
-	log.Info("Serving gRPC-Gateway on ", config.Server.Host+":"+config.Server.Gateway.Port)
+	log.Info("Serving gRPC-Gateway on ", fmt.Sprintf("%s:%s", config.Server.Host, config.Server.Gateway.Port))
 	go func() {
 		err := gatewayServer.ListenAndServe()
 		if err != nil {
